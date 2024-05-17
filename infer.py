@@ -4,7 +4,7 @@ import pandas as pd
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from transformers import GenerationConfig
 os.environ["CUDA_VISIBLE_DEVICES"]="0,1,2,3"
-PATH = "/data2/telebloom7b/public/baai/FLM3-52B-9500/"
+PATH = "/PATH/TO/Models" ## 模型路徑
 tokenizer = AutoTokenizer.from_pretrained(PATH, use_fast=False, trust_remote_code=True)
 model = AutoModelForCausalLM.from_pretrained(PATH,
                                              torch_dtype=torch.bfloat16,
