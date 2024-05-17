@@ -156,7 +156,7 @@ python -u process_data.py \
 
 ### 全量训练
 
-可运行**run_teleflm.sh**脚本
+可运行**run_telechat_52b.sh**脚本
 
 多机训练需要给出免密互连hostfile，如下所示，node1、node2、node3、node4是节点名称，slots代表每个节点的卡数
 ```shell
@@ -167,15 +167,15 @@ node4 slots=8
 ```
 
 ```shell
-bash run_teleflm.sh
+bash run_telechat_52b.sh
 ```
 
 ### Lora训练
 
-可运行**run_teleflm_lora.sh**脚本
+可运行**run_telechat_52b_lora.sh**脚本
 
 ```shell
-bash run_teleflm_lora.sh
+bash run_telechat_52b_lora.sh
 ```
 
 
