@@ -2,7 +2,7 @@
 
 ## 下载vllm
 ```
-pip install vllm
+pip install vllm==0.5.1
 ```
 
 ## vllm 添加telechat
