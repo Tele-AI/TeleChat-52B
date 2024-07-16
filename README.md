@@ -16,6 +16,7 @@
 - [声明、协议、引用](#声明协议引用)
 
 # 最新动态
+- 7.16 [支持vllm推理](https://github.com/Tele-AI/TeleChat-52B/tree/main/vllm_inf)
 - 5.16 开源52B版本chat模型
 
 # 模型介绍
