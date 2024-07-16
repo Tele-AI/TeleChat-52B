@@ -27,3 +27,16 @@ cd ./vllm/model_executor/models/
 
 ## 启动
 按vllm里的方式启动telechat 推理
+
+#### 示例
+```
+>>> from vllm import LLM, SamplingParams
+>>> import torch
+>>> llm = LLM(model="模型路径", trust_remote_code=True, tensor_parallel_size=4, dtype='bfloat16')
+>>> prompts = ['<_user>你好<_bot>']
+>>> sampling_params = SamplingParams(max_tokens=100, temperature=0.0)
+>>> outputs = llm.generate(prompts, sampling_params)
+>>> for output in outputs:
+>>>     generated_text = output.outputs[0].text
+>>>     print(generated_text)
+```
