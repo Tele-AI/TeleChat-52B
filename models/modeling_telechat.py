@@ -43,6 +43,8 @@ except ImportError:
     try:
         from flash_attn.flash_attn_interface import flash_attn_varlen_func as flash_attn_unpadded_func # flashattn2
         print("# FLASH ATTENTION 2 DETECTED #")
+    r
+    r
     except ImportError:
         print("# NO FLASH ATTENTION DETECTED #")
         flash_attn_unpadded_func = None
@@ -110,10 +112,11 @@ logger = logging.get_logger(__name__)
 def exists(v):
     return v is not None
 
-
 class RotaryEmbedding(nn.Module):
     def __init__(self, dim, use_xpos=False, xpos_scale_base=512, theta=10000):
         super().__init__()
+        self.theta = theta
+        self.dim  = dim
         inv_freq = 1.0 / (theta ** (torch.arange(0, dim, 2).float() / dim))
         self.register_buffer('inv_freq', inv_freq)
         self.cache = dict()
@@ -125,13 +128,25 @@ class RotaryEmbedding(nn.Module):
         scale = (torch.arange(0, dim, 2) + 0.4 * dim) / (1.4 * dim)
         self.register_buffer('scale', scale)
         self.scale_base = xpos_scale_base
+    def get_ntk_alpha(self, true_seq_len):
+        context_value = math.log(true_seq_len / 4096, 2) + 1
+        # ntk_alpha = 2 ** context_value - 1
+        ntk_alpha = 2 ** math.ceil(context_value) - 1
+        ntk_alpha = max(ntk_alpha, 1)
+        return ntk_alpha
+
 
     def forward(self, seq, cache_key=None):
 
         if cache_key is not None and cache_key in self.cache:
             return self.cache[cache_key]
-
-        inv_freq = self.inv_freq.to(device=seq.device)
+        
+        
+        ntk_alpha = self.get_ntk_alpha(int(cache_key.split(":")[1]))
+        theta = self.theta * ntk_alpha
+        #print("theta",theta)
+        inv_freq = 1.0 / (theta ** (torch.arange(0, self.dim, 2).float() / self.dim))
+        inv_freq = inv_freq.to(device=seq.device)
         freqs = einsum('i , j -> i j', seq, inv_freq)
         # first part even vector components, second part odd vector components,
         #  2 * dim in dimension size
@@ -1085,8 +1100,8 @@ class TELECHAT(TELECHATPretrainedModel):
             input_ids = tokenizer.encode(inputs,
                                          return_tensors="pt"
                                          )
-            if len(input_ids[0]) >= 2000:
-                input_ids = input_ids[:, -2000:]
+            #if len(input_ids[0]) >= 2000:
+            #    input_ids = input_ids[:, -2000:]
             input_ids = input_ids.to(0)
             output = self.generate(input_ids,generation_config)
             response = tokenizer.decode(output[0].cpu().numpy().tolist()).split('<_bot>')[-1].split('</s>')[0]
