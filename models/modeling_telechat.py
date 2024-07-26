@@ -43,8 +43,6 @@ except ImportError:
     try:
         from flash_attn.flash_attn_interface import flash_attn_varlen_func as flash_attn_unpadded_func # flashattn2
         print("# FLASH ATTENTION 2 DETECTED #")
-    r
-    r
     except ImportError:
         print("# NO FLASH ATTENTION DETECTED #")
         flash_attn_unpadded_func = None
