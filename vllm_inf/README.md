@@ -28,6 +28,25 @@ cd ./vllm/model_executor/models/
 ## 启动
 按vllm里的方式启动telechat 推理
 
+## 外推
+如有外推需求在模型文件中的config.json 中添加
+```
+>>> "rope_scaling": {
+>>>     "factor": 4.0,
+>>>     "original_max_position_embeddings": 16384,
+>>>     "rope_type": "dynamic"
+>>> }
+```
+在configuration_telechat.py中添加 rope_scaling 参数
+在def __init__() 入参中中添加
+```
+>>> rope_scaling=None
+```
+在def __init__() 方法中添加
+```
+self.rope_scaling = rope_scaling
+```
+
 #### 示例
 ```
 >>> from vllm import LLM, SamplingParams
