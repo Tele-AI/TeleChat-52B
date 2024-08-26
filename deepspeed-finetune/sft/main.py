@@ -342,7 +342,6 @@ def main():
             if step > 0 and step % (args.save_steps * loss_update_steps) == 0:
                 if args.output_dir is not None:
                     print_rank_0(f'saving step {global_step} model ...', args.global_rank)
-                    print(f"{'*' * 20} step: {step} {'*' * 20}")
                     if args.lora_dim > 0:
                         model = convert_lora_to_linear_layer(model)
                         print_rank_0('convert lora to linear layer successfully!', args.global_rank)
