@@ -310,6 +310,7 @@ def main():
 
     # Train!
     print_rank_0("***** Running training *****", args.global_rank)
+    global_step = 0
     cur_batch_loss = 0.0
     for epoch in range(args.num_train_epochs):
         print_rank_0(
@@ -317,6 +318,7 @@ def main():
             args.global_rank)
         model.train()
         total_loss = 0.0
+        n_ranks = torch.distributed.get_world_size()
         for step, batch in enumerate(train_dataloader):
             batch = to_device(batch, device)
             if args.with_loss_mask:
@@ -331,23 +333,26 @@ def main():
             torch.distributed.reduce(loss, 0)
             total_loss += loss
             if (step + 1) % loss_update_steps == 0:
-                cur_batch_loss = total_loss / (loss_update_steps * torch.distributed.get_world_size())
-                print_rank_0(f"epoch:{epoch+1}, global_step:{(step+1) // args.gradient_accumulation_steps}, step:{step+1}, cur_batch_loss: {cur_batch_loss}", args.global_rank)
-                # print(f"epoch:{epoch + 1}, global_step:{global_step + 1}, step:{step + 1}, cur_batch_loss: {cur_batch_loss}, rank: {args.global_rank}")
+                cur_batch_loss = total_loss / (loss_update_steps * n_ranks)
+                print_rank_0(
+                    f"epoch:{epoch + 1}, global_step:{global_step + 1}, step:{step + 1}  cur_batch_loss: {cur_batch_loss}",
+                    args.global_rank)
                 total_loss = 0.0
-            if (step + 1) % (args.save_steps * args.gradient_accumulation_steps) == 0 and args.global_rank <= 0:
+                global_step += 1
+            if step > 0 and step % (args.save_steps * loss_update_steps) == 0:
                 if args.output_dir is not None:
-                    print_rank_0(f'saving step {(step+1) // args.gradient_accumulation_steps} model ...', args.global_rank)
+                    print_rank_0(f'saving step {global_step} model ...', args.global_rank)
+                    print(f"{'*' * 20} step: {step} {'*' * 20}")
                     if args.lora_dim > 0:
                         model = convert_lora_to_linear_layer(model)
                         print_rank_0('convert lora to linear layer successfully!', args.global_rank)
 
                     if args.zero_stage < 3 and args.global_rank <= 0:
-                        save_hf_format(model, tokenizer, args, f"global_step_{step + 1}_loss_{cur_batch_loss:.4f}")
+                        save_hf_format(model, tokenizer, args, f"global_step_{global_step}_loss_{cur_batch_loss:.4f}")
 
                     if args.zero_stage == 3:
                     # For zero stage 3, each gpu only has a part of the model, so we need a special save function
-                        save_zero_three_model(model, tokenizer, args, f"global_step_{step + 1}_loss_{cur_batch_loss:.4f}")
+                        save_zero_three_model(model, tokenizer, args, f"global_step_{global_step}_loss_{cur_batch_loss:.4f}")
                     print_rank_0('save successfully!', args.global_rank)
                     if args.lora_dim > 0:
                         print_rank_0('recovering lora...', args.global_rank)
