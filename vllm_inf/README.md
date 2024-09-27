@@ -25,6 +25,13 @@ cd ./vllm/model_executor/models/
 ```
 添加以上代码中的TeleChat 一行
 
+### 修改模型文件里的config.json
+```
+>>> architectures": [
+>>>     "TeleChatForCausalLM"
+>>>     ]
+```
+
 ## 启动
 按vllm里的方式启动telechat 推理
 
